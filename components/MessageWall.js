@@ -4,91 +4,39 @@ import React, { useState, useEffect } from 'react';
 import { Heart, Image as ImageIcon, X, Plus } from 'lucide-react';
 
 const MessageWall = () => {
-  // NEW/MODIFIED CODE START
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState([]);  // Initialize as empty array
   const [showModal, setShowModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [newMessage, setNewMessage] = useState({
     name: '',
     message: '',
     image: null,
     imagePreview: null,
   });
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Fetch messages when component mounts
-  useEffect(() => {
-    fetchMessages();
-  }, []);
 
   const fetchMessages = async () => {
     try {
+      setIsLoading(true);
       const response = await fetch('/api/messages');
+      if (!response.ok) {
+        throw new Error('Failed to fetch messages');
+      }
       const data = await response.json();
-      setMessages(data);
+      // Ensure messages is always an array
+      setMessages(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching messages:', error);
+      setError(error.message);
+      setMessages([]); // Set to empty array on error
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setNewMessage(prev => ({
-          ...prev,
-          image: file,
-          imagePreview: reader.result
-        }));
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (newMessage.name && newMessage.message) {
-      try {
-        const response = await fetch('/api/messages', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            name: newMessage.name,
-            message: newMessage.message,
-            imageUrl: newMessage.imagePreview,
-          }),
-        });
-
-        if (response.ok) {
-          await fetchMessages(); // Refresh messages
-          setNewMessage({
-            name: '',
-            message: '',
-            image: null,
-            imagePreview: null,
-          });
-          setShowModal(false);
-        }
-      } catch (error) {
-        console.error('Error posting message:', error);
-      }
-    }
-  };
-
-  const handleLike = async (messageId) => {
-    try {
-      await fetch(`/api/messages/${messageId}/like`, {
-        method: 'PUT',
-      });
-      await fetchMessages(); // Refresh messages
-    } catch (error) {
-      console.error('Error liking message:', error);
-    }
-  };
+  useEffect(() => {
+    fetchMessages();
+  }, []);
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
