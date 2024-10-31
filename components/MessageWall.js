@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Heart, Image as ImageIcon, X, Plus } from 'lucide-react';
 
 const MessageWall = () => {
+  // NEW/MODIFIED CODE START
   const [messages, setMessages] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [newMessage, setNewMessage] = useState({
@@ -11,8 +12,25 @@ const MessageWall = () => {
     message: '',
     image: null,
     imagePreview: null,
-    likes: 0
   });
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch messages when component mounts
+  useEffect(() => {
+    fetchMessages();
+  }, []);
+
+  const fetchMessages = async () => {
+    try {
+      const response = await fetch('/api/messages');
+      const data = await response.json();
+      setMessages(data);
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -29,35 +47,47 @@ const MessageWall = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (newMessage.name && newMessage.message) {
-      setMessages([
-        {
-          ...newMessage,
-          id: Date.now(),
-          likes: 0,
-          createdAt: new Date().toLocaleDateString()
-        },
-        ...messages
-      ]);
-      setNewMessage({
-        name: '',
-        message: '',
-        image: null,
-        imagePreview: null,
-        likes: 0
-      });
-      setShowModal(false);
+      try {
+        const response = await fetch('/api/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: newMessage.name,
+            message: newMessage.message,
+            imageUrl: newMessage.imagePreview,
+          }),
+        });
+
+        if (response.ok) {
+          await fetchMessages(); // Refresh messages
+          setNewMessage({
+            name: '',
+            message: '',
+            image: null,
+            imagePreview: null,
+          });
+          setShowModal(false);
+        }
+      } catch (error) {
+        console.error('Error posting message:', error);
+      }
     }
   };
 
-  const handleLike = (messageId) => {
-    setMessages(messages.map(msg =>
-      msg.id === messageId
-        ? { ...msg, likes: msg.likes + 1 }
-        : msg
-    ));
+  const handleLike = async (messageId) => {
+    try {
+      await fetch(`/api/messages/${messageId}/like`, {
+        method: 'PUT',
+      });
+      await fetchMessages(); // Refresh messages
+    } catch (error) {
+      console.error('Error liking message:', error);
+    }
   };
 
   return (
