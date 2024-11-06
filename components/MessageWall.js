@@ -1,12 +1,16 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Heart, Image as ImageIcon, X, Plus } from 'lucide-react';
+import { Heart, Image as ImageIcon, X, Plus, Trash2, Lock, LogOut } from 'lucide-react';
 
 const MessageWall = () => {
   const [messages, setMessages] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [showAdminModal, setShowAdminModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminPassword, setAdminPassword] = useState('');
+  const [adminError, setAdminError] = useState('');
   const [newMessage, setNewMessage] = useState({
     name: '',
     message: '',
@@ -16,6 +20,11 @@ const MessageWall = () => {
 
   useEffect(() => {
     fetchMessages();
+    // Check if admin status is stored
+    const storedAdminStatus = localStorage.getItem('isAdmin');
+    if (storedAdminStatus === 'true') {
+      setIsAdmin(true);
+    }
   }, []);
 
   const fetchMessages = async () => {
@@ -88,31 +97,98 @@ const MessageWall = () => {
     }
   };
 
+  const handleAdminLogin = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch('/api/admin/verify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password: adminPassword }),
+      });
+
+      if (response.ok) {
+        setIsAdmin(true);
+        localStorage.setItem('isAdmin', 'true');
+        setShowAdminModal(false);
+        setAdminError('');
+      } else {
+        setAdminError('Invalid password');
+      }
+    } catch (error) {
+      console.error('Error verifying admin:', error);
+      setAdminError('Error verifying admin status');
+    }
+  };
+
+  const handleAdminLogout = () => {
+    setIsAdmin(false);
+    localStorage.removeItem('isAdmin');
+  };
+
+  const handleDeleteMessage = async (messageId) => {
+    if (!isAdmin) return;
+
+    try {
+      const response = await fetch(`/api/messages/${messageId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        await fetchMessages();
+      }
+    } catch (error) {
+      console.error('Error deleting message:', error);
+    }
+  };
+
   return (
     <div className="p-6 max-w-6xl mx-auto">
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Message Wall</h1>
-        <button
-          onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition duration-200"
-        >
-          <Plus size={20} />
-          Add a message
-        </button>
-      </div>
-
-      {/* Loading State */}
-      {isLoading && (
-        <div className="text-center py-8">
-          <p className="text-gray-500">Loading messages...</p>
+        <div className="flex gap-2">
+          {isAdmin ? (
+            <button
+              onClick={handleAdminLogout}
+              className="flex items-center gap-2 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition duration-200"
+            >
+              <LogOut size={20} />
+              Admin Logout
+            </button>
+          ) : (
+            <button
+              onClick={() => setShowAdminModal(true)}
+              className="flex items-center gap-2 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition duration-200"
+            >
+              <Lock size={20} />
+              Admin
+            </button>
+          )}
+          <button
+            onClick={() => setShowModal(true)}
+            className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition duration-200"
+          >
+            <Plus size={20} />
+            Add a message
+          </button>
         </div>
-      )}
+      </div>
 
       {/* Messages Display */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {messages.map((msg) => (
-          <div key={msg.id} className="p-6 bg-white border rounded-lg shadow-sm hover:shadow-md transition duration-200">
+          <div key={msg.id} className="p-6 bg-white border rounded-lg shadow-sm hover:shadow-md transition duration-200 relative">
+            {isAdmin && (
+              <button
+                onClick={() => handleDeleteMessage(msg.id)}
+                className="absolute top-2 right-2 text-red-500 hover:text-red-700 transition duration-200"
+                title="Delete message"
+              >
+                <Trash2 size={20} />
+              </button>
+            )}
             {msg.image_url && (
               <div className="mb-4">
                 <img
@@ -126,9 +202,7 @@ const MessageWall = () => {
             <div className="flex justify-between items-center text-sm">
               <div className="flex items-center gap-4">
                 <p className="font-medium text-gray-600">- {msg.name}</p>
-                <p className="text-gray-400">
-                  {new Date(msg.created_at).toLocaleDateString()}
-                </p>
+                <p className="text-gray-400">{new Date(msg.created_at).toLocaleDateString()}</p>
               </div>
               <button
                 onClick={() => handleLike(msg.id)}
@@ -145,7 +219,47 @@ const MessageWall = () => {
         ))}
       </div>
 
-      {/* Modal */}
+      {/* Admin Login Modal */}
+      {showAdminModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg w-full max-w-md relative">
+            <button
+              onClick={() => setShowAdminModal(false)}
+              className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
+            >
+              <X size={24} />
+            </button>
+
+            <form onSubmit={handleAdminLogin} className="p-6 space-y-4">
+              <h2 className="text-xl font-bold mb-4">Admin Access</h2>
+
+              {adminError && (
+                <p className="text-red-500 text-sm">{adminError}</p>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Admin Password</label>
+                <input
+                  type="password"
+                  value={adminPassword}
+                  onChange={(e) => setAdminPassword(e.target.value)}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition duration-200"
+              >
+                Login
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Message Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg w-full max-w-md relative">
