@@ -28,3 +28,18 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
+
+import { Playfair_Display } from 'next/font/google'
+ 
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  display: 'swap',
+})
+ 
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en" className={playfair.className}>
+      <body>{children}</body>
+    </html>
+  )
+}
