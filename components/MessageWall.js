@@ -20,7 +20,6 @@ const MessageWall = () => {
 
   useEffect(() => {
     fetchMessages();
-    // Check if admin status is stored
     const storedAdminStatus = localStorage.getItem('isAdmin');
     if (storedAdminStatus === 'true') {
       setIsAdmin(true);
@@ -144,198 +143,207 @@ const MessageWall = () => {
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Message Wall</h1>
-        <div className="flex gap-2">
-          {isAdmin ? (
+    <div className="min-h-screen bg-black text-white">
+      <div className="p-6 max-w-[1600px] mx-auto">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold">Message Wall</h1>
+          {isAdmin && (
             <button
               onClick={handleAdminLogout}
-              className="flex items-center gap-2 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition duration-200"
+              className="text-sm text-gray-400 hover:text-gray-300"
             >
-              <LogOut size={20} />
-              Admin Logout
-            </button>
-          ) : (
-            <button
-              onClick={() => setShowAdminModal(true)}
-              className="flex items-center gap-2 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition duration-200"
-            >
-              <Lock size={20} />
-              Admin
+              Logout Admin
             </button>
           )}
           <button
             onClick={() => setShowModal(true)}
-            className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition duration-200"
+            className="flex items-center gap-2 bg-white/10 text-white px-4 py-2 rounded-lg hover:bg-white/20 transition duration-200"
           >
             <Plus size={20} />
             Add a message
           </button>
         </div>
-      </div>
 
-      {/* Messages Display */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-        {messages.map((msg) => (
-          <div key={msg.id} className="p-6 bg-white border rounded-lg shadow-sm hover:shadow-md transition duration-200 relative">
-            {isAdmin && (
-              <button
-                onClick={() => handleDeleteMessage(msg.id)}
-                className="absolute top-2 right-2 text-red-500 hover:text-red-700 transition duration-200"
-                title="Delete message"
-              >
-                <Trash2 size={20} />
-              </button>
-            )}
-            {msg.image_url && (
-              <div className="mb-4">
-                <img
-                  src={msg.image_url}
-                  alt="Message attachment"
-                  className="rounded-lg max-h-[300px] w-full object-cover"
-                />
-              </div>
-            )}
-            <p className="text-gray-700 mb-3">{msg.message}</p>
-            <div className="flex justify-between items-center text-sm">
-              <div className="flex items-center gap-4">
-                <p className="font-medium text-gray-600">- {msg.name}</p>
-                <p className="text-gray-400">{new Date(msg.created_at).toLocaleDateString()}</p>
-              </div>
-              <button
-                onClick={() => handleLike(msg.id)}
-                className="flex items-center gap-1 text-gray-500 hover:text-red-500 transition duration-200"
-              >
-                <Heart
-                  size={16}
-                  fill={msg.likes > 0 ? "currentColor" : "none"}
-                />
-                <span>{msg.likes || 0}</span>
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Admin Login Modal */}
-      {showAdminModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg w-full max-w-md relative">
-            <button
-              onClick={() => setShowAdminModal(false)}
-              className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
+        {/* Messages Display - Masonry Layout */}
+        <div className="columns-1 sm:columns-2 lg:columns-3 gap-4">
+          {messages.map((msg) => (
+            <div 
+              key={msg.id} 
+              className="break-inside-avoid mb-4 bg-white/5 backdrop-blur-sm rounded-lg overflow-hidden hover:bg-white/10 transition duration-200"
             >
-              <X size={24} />
-            </button>
-
-            <form onSubmit={handleAdminLogin} className="p-6 space-y-4">
-              <h2 className="text-xl font-bold mb-4">Admin Access</h2>
-
-              {adminError && (
-                <p className="text-red-500 text-sm">{adminError}</p>
+              {isAdmin && (
+                <button
+                  onClick={() => handleDeleteMessage(msg.id)}
+                  className="absolute top-2 right-2 text-red-500 hover:text-red-700 transition duration-200"
+                  title="Delete message"
+                >
+                  <Trash2 size={20} />
+                </button>
               )}
-
-              <div>
-                <label className="block text-sm font-medium mb-1">Admin Password</label>
-                <input
-                  type="password"
-                  value={adminPassword}
-                  onChange={(e) => setAdminPassword(e.target.value)}
-                  className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  required
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition duration-200"
-              >
-                Login
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Message Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg w-full max-w-md relative">
-            <button
-              onClick={() => setShowModal(false)}
-              className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
-            >
-              <X size={24} />
-            </button>
-
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <h2 className="text-xl font-bold mb-4">Add a Message</h2>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">Your Name</label>
-                <input
-                  type="text"
-                  value={newMessage.name}
-                  onChange={(e) => setNewMessage(prev => ({...prev, name: e.target.value}))}
-                  className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-1">Your Message</label>
-                <textarea
-                  value={newMessage.message}
-                  onChange={(e) => setNewMessage(prev => ({...prev, message: e.target.value}))}
-                  className="w-full p-2 border rounded min-h-[100px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">Add Image (optional)</label>
-                <div className="mt-1 flex items-center gap-4">
-                  <label className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-700 rounded cursor-pointer hover:bg-gray-100">
-                    <ImageIcon size={20} />
-                    <span>Choose Image</span>
-                    <input
-                      type="file"
-                      onChange={handleImageChange}
-                      accept="image/*"
-                      className="hidden"
+              {msg.image_url && (
+                <div className="relative w-full">
+                  <img
+                    src={msg.image_url}
+                    alt="Message attachment"
+                    className="w-full object-cover"
+                  />
+                </div>
+              )}
+              <div className="p-4">
+                <p className="text-white/90 mb-3">{msg.message}</p>
+                <div className="flex justify-between items-center text-sm">
+                  <div className="flex items-center gap-4">
+                    <p className="font-medium text-white/70">- {msg.name}</p>
+                    <p className="text-white/50">{new Date(msg.created_at).toLocaleDateString()}</p>
+                  </div>
+                  <button
+                    onClick={() => handleLike(msg.id)}
+                    className="flex items-center gap-1 text-white/50 hover:text-red-500 transition duration-200"
+                  >
+                    <Heart
+                      size={16}
+                      fill={msg.likes > 0 ? "currentColor" : "none"}
                     />
-                  </label>
-                  {newMessage.imagePreview && (
-                    <div className="relative w-20 h-20">
-                      <img
-                        src={newMessage.imagePreview}
-                        alt="Preview"
-                        className="w-full h-full object-cover rounded"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setNewMessage(prev => ({...prev, image: null, imagePreview: null}))}
-                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  )}
+                    <span>{msg.likes || 0}</span>
+                  </button>
                 </div>
               </div>
-              
-              <button
-                type="submit"
-                className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition duration-200"
-              >
-                Post Message
-              </button>
-            </form>
+            </div>
+          ))}
+        </div>
+
+        {/* Footer */}
+        <div className="mt-8 pt-4 border-t border-white/10">
+          <div className="flex justify-between items-center text-sm text-white/50">
+            <button
+              onClick={() => setShowAdminModal(true)}
+              className="text-white/30 hover:text-white/50 transition duration-200"
+            >
+              Admin
+            </button>
+            <span>© 2024 Digital Ofrenda LLC</span>
           </div>
         </div>
-      )}
+
+        {/* Admin Login Modal */}
+        {showAdminModal && (
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+            <div className="bg-white/10 backdrop-blur-md rounded-lg w-full max-w-md relative text-white">
+              <button
+                onClick={() => setShowAdminModal(false)}
+                className="absolute right-4 top-4 text-white/50 hover:text-white/70"
+              >
+                <X size={24} />
+              </button>
+
+              <form onSubmit={handleAdminLogin} className="p-6 space-y-4">
+                <h2 className="text-xl font-bold mb-4">Admin Access</h2>
+
+                {adminError && (
+                  <p className="text-red-400 text-sm">{adminError}</p>
+                )}
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">Admin Password</label>
+                  <input
+                    type="password"
+                    value={adminPassword}
+                    onChange={(e) => setAdminPassword(e.target.value)}
+                    className="w-full p-2 bg-white/5 border border-white/10 rounded focus:ring-2 focus:ring-white/20 focus:border-white/20 text-white"
+                    required
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full bg-white/10 text-white py-2 px-4 rounded hover:bg-white/20 transition duration-200"
+                >
+                  Login
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Message Modal */}
+        {showModal && (
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+            <div className="bg-white/10 backdrop-blur-md rounded-lg w-full max-w-md relative text-white">
+              <button
+                onClick={() => setShowModal(false)}
+                className="absolute right-4 top-4 text-white/50 hover:text-white/70"
+              >
+                <X size={24} />
+              </button>
+
+              <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                <h2 className="text-xl font-bold mb-4">Add a Message</h2>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">Your Name</label>
+                  <input
+                    type="text"
+                    value={newMessage.name}
+                    onChange={(e) => setNewMessage(prev => ({...prev, name: e.target.value}))}
+                    className="w-full p-2 bg-white/5 border border-white/10 rounded focus:ring-2 focus:ring-white/20 focus:border-white/20 text-white"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1">Your Message</label>
+                  <textarea
+                    value={newMessage.message}
+                    onChange={(e) => setNewMessage(prev => ({...prev, message: e.target.value}))}
+                    className="w-full p-2 bg-white/5 border border-white/10 rounded min-h-[100px] focus:ring-2 focus:ring-white/20 focus:border-white/20 text-white"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">Add Image (optional)</label>
+                  <div className="mt-1 flex items-center gap-4">
+                    <label className="flex items-center gap-2 px-4 py-2 bg-white/5 text-white rounded cursor-pointer hover:bg-white/10">
+                      <ImageIcon size={20} />
+                      <span>Choose Image</span>
+                      <input
+                        type="file"
+                        onChange={handleImageChange}
+                        accept="image/*"
+                        className="hidden"
+                      />
+                    </label>
+                    {newMessage.imagePreview && (
+                      <div className="relative w-20 h-20">
+                        <img
+                          src={newMessage.imagePreview}
+                          alt="Preview"
+                          className="w-full h-full object-cover rounded"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setNewMessage(prev => ({...prev, image: null, imagePreview: null}))}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                <button
+                  type="submit"
+                  className="w-full bg-white/10 text-white py-2 px-4 rounded hover:bg-white/20 transition duration-200"
+                >
+                  Post Message
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
