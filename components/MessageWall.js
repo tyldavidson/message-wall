@@ -4,22 +4,151 @@ import React, { useState, useEffect } from 'react';
 import { Heart, Image as ImageIcon, X, Plus, Trash2, Lock, LogOut } from 'lucide-react';
 
 const MessageWall = () => {
-  // ... all the state and function declarations stay the same ...
+  const [messages, setMessages] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [showAdminModal, setShowAdminModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminPassword, setAdminPassword] = useState('');
+  const [adminError, setAdminError] = useState('');
+  const [newMessage, setNewMessage] = useState({
+    name: '',
+    message: '',
+    image: null,
+    imagePreview: null,
+  });
+
+  useEffect(() => {
+    fetchMessages();
+    // Check if admin status is stored
+    const storedAdminStatus = localStorage.getItem('isAdmin');
+    if (storedAdminStatus === 'true') {
+      setIsAdmin(true);
+    }
+  }, []);
+
+  const fetchMessages = async () => {
+    try {
+      const response = await fetch('/api/messages');
+      const data = await response.json();
+      setMessages(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (newMessage.name && newMessage.message) {
+      try {
+        const response = await fetch('/api/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: newMessage.name,
+            message: newMessage.message,
+            imageUrl: newMessage.imagePreview,
+          }),
+        });
+
+        if (response.ok) {
+          await fetchMessages();
+          setNewMessage({
+            name: '',
+            message: '',
+            image: null,
+            imagePreview: null,
+          });
+          setShowModal(false);
+        }
+      } catch (error) {
+        console.error('Error posting message:', error);
+      }
+    }
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setNewMessage(prev => ({
+          ...prev,
+          image: file,
+          imagePreview: reader.result
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleLike = async (messageId) => {
+    try {
+      await fetch(`/api/messages/${messageId}/like`, {
+        method: 'PUT',
+      });
+      await fetchMessages();
+    } catch (error) {
+      console.error('Error liking message:', error);
+    }
+  };
+
+  const handleAdminLogin = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch('/api/admin/verify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password: adminPassword }),
+      });
+
+      if (response.ok) {
+        setIsAdmin(true);
+        localStorage.setItem('isAdmin', 'true');
+        setShowAdminModal(false);
+        setAdminError('');
+      } else {
+        setAdminError('Invalid password');
+      }
+    } catch (error) {
+      console.error('Error verifying admin:', error);
+      setAdminError('Error verifying admin status');
+    }
+  };
+
+  const handleAdminLogout = () => {
+    setIsAdmin(false);
+    localStorage.removeItem('isAdmin');
+  };
+
+  const handleDeleteMessage = async (messageId) => {
+    if (!isAdmin) return;
+
+    try {
+      const response = await fetch(`/api/messages/${messageId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        await fetchMessages();
+      }
+    } catch (error) {
+      console.error('Error deleting message:', error);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-[#4A4745] text-white flex flex-col font-['Playfair_Display']">
+    <div className="min-h-screen bg-[#4A4745] text-white flex flex-col">
       <div className="flex-1 p-5 sm:p-10 lg:p-20 max-w-[1600px] mx-auto w-full">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl sm:text-4xl font-bold">Digital Ofrenda</h1>
-          {isAdmin && (
-            <button
-              onClick={handleAdminLogout}
-              className="text-sm text-[#FF7D2B] hover:text-[#FF7D2B]/80"
-            >
-              Logout Admin
-            </button>
-          )}
           <button
             onClick={() => setShowModal(true)}
             className="flex items-center gap-2 bg-[#FF7D2B] text-white px-4 py-2 rounded-lg hover:bg-[#FF7D2B]/80 transition duration-200"
@@ -29,12 +158,24 @@ const MessageWall = () => {
           </button>
         </div>
 
+        {/* Admin Logout Button - Fixed Position */}
+        {isAdmin && (
+          <div className="fixed top-4 right-4 z-40">
+            <button
+              onClick={handleAdminLogout}
+              className="text-sm text-[#FF7D2B] hover:text-[#FF7D2B]/80 bg-[#4A4745]/80 px-3 py-1 rounded"
+            >
+              Logout Admin
+            </button>
+          </div>
+        )}
+
         {/* Messages Display - Masonry Layout */}
         <div className="columns-1 sm:columns-2 lg:columns-3 gap-6">
           {messages.map((msg) => (
             <div 
               key={msg.id} 
-              className="break-inside-avoid mb-6 bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden hover:bg-white/15 transition duration-200 shadow-lg"
+              className="break-inside-avoid mb-6 bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden hover:bg-white/15 transition duration-200 shadow-lg relative"
             >
               {isAdmin && (
                 <button
@@ -78,7 +219,7 @@ const MessageWall = () => {
         </div>
       </div>
 
-      {/* Updated Footer */}
+      {/* Footer */}
       <footer className="p-5 sm:p-10 lg:p-20 text-sm text-[#FF7D2B]/80">
         <p>
           © 2024 Digital Ofrenda LLC - {' '}
