@@ -220,7 +220,8 @@ const MessageWall = () => {
       </div>
 
       {/* Footer */}
-      <footer className="p-5 sm:p-10 lg:p-20 text-sm text-[#FF7D2B]/80">
+      {/* Footer */}
+<footer className="pt-5 px-5 sm:pt-10 sm:px-10 lg:pt-20 lg:px-20 pb-4 text-sm text-[#FF7D2B]/80">
         <p>
           © 2024 Digital Ofrenda LLC - {' '}
           <button
