@@ -4,10 +4,9 @@ import React, { useState, useEffect } from 'react';
 import { Heart, Image as ImageIcon, X, Plus } from 'lucide-react';
 
 const MessageWall = () => {
-  const [messages, setMessages] = useState([]);  // Initialize as empty array
+  const [messages, setMessages] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [newMessage, setNewMessage] = useState({
     name: '',
     message: '',
@@ -15,28 +14,79 @@ const MessageWall = () => {
     imagePreview: null,
   });
 
+  useEffect(() => {
+    fetchMessages();
+  }, []);
+
   const fetchMessages = async () => {
     try {
-      setIsLoading(true);
       const response = await fetch('/api/messages');
-      if (!response.ok) {
-        throw new Error('Failed to fetch messages');
-      }
       const data = await response.json();
-      // Ensure messages is always an array
       setMessages(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching messages:', error);
-      setError(error.message);
-      setMessages([]); // Set to empty array on error
     } finally {
       setIsLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchMessages();
-  }, []);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (newMessage.name && newMessage.message) {
+      try {
+        const response = await fetch('/api/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: newMessage.name,
+            message: newMessage.message,
+            imageUrl: newMessage.imagePreview,
+          }),
+        });
+
+        if (response.ok) {
+          await fetchMessages();
+          setNewMessage({
+            name: '',
+            message: '',
+            image: null,
+            imagePreview: null,
+          });
+          setShowModal(false);
+        }
+      } catch (error) {
+        console.error('Error posting message:', error);
+      }
+    }
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setNewMessage(prev => ({
+          ...prev,
+          image: file,
+          imagePreview: reader.result
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleLike = async (messageId) => {
+    try {
+      await fetch(`/api/messages/${messageId}/like`, {
+        method: 'PUT',
+      });
+      await fetchMessages();
+    } catch (error) {
+      console.error('Error liking message:', error);
+    }
+  };
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
@@ -52,11 +102,53 @@ const MessageWall = () => {
         </button>
       </div>
 
+      {/* Loading State */}
+      {isLoading && (
+        <div className="text-center py-8">
+          <p className="text-gray-500">Loading messages...</p>
+        </div>
+      )}
+
+      {/* Messages Display */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        {messages.map((msg) => (
+          <div key={msg.id} className="p-6 bg-white border rounded-lg shadow-sm hover:shadow-md transition duration-200">
+            {msg.image_url && (
+              <div className="mb-4">
+                <img
+                  src={msg.image_url}
+                  alt="Message attachment"
+                  className="rounded-lg max-h-[300px] w-full object-cover"
+                />
+              </div>
+            )}
+            <p className="text-gray-700 mb-3">{msg.message}</p>
+            <div className="flex justify-between items-center text-sm">
+              <div className="flex items-center gap-4">
+                <p className="font-medium text-gray-600">- {msg.name}</p>
+                <p className="text-gray-400">
+                  {new Date(msg.created_at).toLocaleDateString()}
+                </p>
+              </div>
+              <button
+                onClick={() => handleLike(msg.id)}
+                className="flex items-center gap-1 text-gray-500 hover:text-red-500 transition duration-200"
+              >
+                <Heart
+                  size={16}
+                  fill={msg.likes > 0 ? "currentColor" : "none"}
+                />
+                <span>{msg.likes || 0}</span>
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg w-full max-w-md relative">
-            {/* Close button */}
             <button
               onClick={() => setShowModal(false)}
               className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
@@ -64,7 +156,6 @@ const MessageWall = () => {
               <X size={24} />
             </button>
 
-            {/* Modal content */}
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <h2 className="text-xl font-bold mb-4">Add a Message</h2>
 
@@ -131,40 +222,6 @@ const MessageWall = () => {
           </div>
         </div>
       )}
-
-      {/* Messages Display */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-        {messages.map((msg) => (
-          <div key={msg.id} className="p-6 bg-white border rounded-lg shadow-sm hover:shadow-md transition duration-200">
-            {msg.imagePreview && (
-              <div className="mb-4">
-                <img
-                  src={msg.imagePreview}
-                  alt="Message attachment"
-                  className="rounded-lg max-h-[300px] w-full object-cover"
-                />
-              </div>
-            )}
-            <p className="text-gray-700 mb-3">{msg.message}</p>
-            <div className="flex justify-between items-center text-sm">
-              <div className="flex items-center gap-4">
-                <p className="font-medium text-gray-600">- {msg.name}</p>
-                <p className="text-gray-400">{msg.createdAt}</p>
-              </div>
-              <button
-                onClick={() => handleLike(msg.id)}
-                className="flex items-center gap-1 text-gray-500 hover:text-red-500 transition duration-200"
-              >
-                <Heart
-                  size={16}
-                  fill={msg.likes > 0 ? "currentColor" : "none"}
-                />
-                <span>{msg.likes}</span>
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
     </div>
   );
 };
