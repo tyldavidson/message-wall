@@ -4,6 +4,7 @@ import './globals.css'
 const playfair = Playfair_Display({
   subsets: ['latin'],
   display: 'swap',
+  variable: '--font-playfair', // Add this line
 })
 
 export const metadata = {
@@ -13,8 +14,8 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={playfair.className}>
-      <body className={`${playfair.className} antialiased`}>{children}</body>
+    <html lang="en" className={`${playfair.variable}`}>
+      <body>{children}</body>
     </html>
   )
 }
