@@ -5,7 +5,6 @@ import { Heart, Image as ImageIcon, X, Plus, Trash2, Lock, LogOut } from 'lucide
 import Script from 'next/script';
 
 const MessageWall = () => {
-  // State management
   const [messages, setMessages] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [showAdminModal, setShowAdminModal] = useState(false);
@@ -155,7 +154,10 @@ const MessageWall = () => {
 
   return (
     <div>
-      <Script src="https://www.google.com/recaptcha/api.js" async defer />
+      <Script 
+        src="https://www.google.com/recaptcha/api.js"
+        strategy="beforeInteractive"
+      />
       
       <div className="min-h-screen bg-[#4A4745] text-white flex flex-col">
         <div className="flex-1 p-5 sm:p-10 lg:p-20 max-w-[1600px] mx-auto w-full">
@@ -164,7 +166,7 @@ const MessageWall = () => {
             <h1 className="text-3xl sm:text-4xl font-bold">Digital Ofrenda</h1>
             <button
               onClick={() => setShowModal(true)}
-              className="flex items-center gap-2 bg-[#FF7D2B] text-white px-4 py-2 rounded-lg hover:bg-[#FF7D2B]/80 transition duration-200"
+              className="flex items-center gap-2 bg-[#FF7D2B] text-white px-4 py-2 rounded-lg hover:bg-[#FF7D2B]/80 transition-opacity"
             >
               <Plus size={20} />
               Add a message
@@ -176,7 +178,7 @@ const MessageWall = () => {
             <div className="fixed top-4 right-4 z-40">
               <button
                 onClick={handleAdminLogout}
-                className="text-sm text-[#FF7D2B] hover:text-[#FF7D2B]/80 bg-[#4A4745]/80 px-3 py-1 rounded"
+                className="text-sm text-[#FF7D2B] hover:text-[#FF7D2B]/80 bg-[#4A4745]/80 px-3 py-1 rounded transition-opacity"
               >
                 Logout Admin
               </button>
@@ -188,12 +190,12 @@ const MessageWall = () => {
             {messages.map((msg) => (
               <div 
                 key={msg.id} 
-                className="break-inside-avoid mb-6 bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden hover:bg-white/15 transition duration-200 shadow-lg relative"
+                className="break-inside-avoid mb-6 bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden hover:bg-white/15 transition-opacity shadow-lg relative"
               >
                 {isAdmin && (
                   <button
                     onClick={() => handleDeleteMessage(msg.id)}
-                    className="absolute top-2 right-2 text-red-500 hover:text-red-700 transition duration-200"
+                    className="absolute top-2 right-2 text-red-500 hover:text-red-700 transition-opacity"
                     title="Delete message"
                   >
                     <Trash2 size={20} />
@@ -217,7 +219,7 @@ const MessageWall = () => {
                     </div>
                     <button
                       onClick={() => handleLike(msg.id)}
-                      className="flex items-center gap-1 text-white/50 hover:text-[#FF7D2B] transition duration-200"
+                      className="flex items-center gap-1 text-white/50 hover:text-[#FF7D2B] transition-opacity"
                     >
                       <Heart
                         size={16}
@@ -238,7 +240,7 @@ const MessageWall = () => {
             © 2024 Digital Ofrenda LLC - {' '}
             <button
               onClick={() => setShowAdminModal(true)}
-              className="hover:text-[#FF7D2B] transition duration-200 inline-block"
+              className="hover:text-[#FF7D2B] transition-opacity inline-block"
             >
               admin login
             </button>
@@ -254,7 +256,7 @@ const MessageWall = () => {
             <div className="bg-[#4A4745] shadow-xl rounded-lg w-full max-w-md relative text-white">
               <button
                 onClick={() => setShowAdminModal(false)}
-                className="absolute right-4 top-4 text-white/50 hover:text-white/70"
+                className="absolute right-4 top-4 text-white/50 hover:text-white/70 transition-opacity"
               >
                 <X size={24} />
               </button>
@@ -279,7 +281,7 @@ const MessageWall = () => {
 
                 <button
                   type="submit"
-                  className="w-full bg-[#FF7D2B] text-white py-2 px-4 rounded hover:bg-[#FF7D2B]/80 transition duration-200"
+                  className="w-full bg-[#FF7D2B] text-white py-2 px-4 rounded hover:bg-[#FF7D2B]/80 transition-opacity"
                 >
                   Login
                 </button>
@@ -294,7 +296,7 @@ const MessageWall = () => {
             <div className="bg-[#4A4745] shadow-xl rounded-lg w-full max-w-md relative text-white">
               <button
                 onClick={() => setShowModal(false)}
-                className="absolute right-4 top-4 text-white/50 hover:text-white/70"
+                className="absolute right-4 top-4 text-white/50 hover:text-white/70 transition-opacity"
               >
                 <X size={24} />
               </button>
@@ -355,19 +357,18 @@ const MessageWall = () => {
                   </div>
                 </div>
 
-                {/* reCAPTCHA */}
                 <div className="flex justify-center my-4">
                   <div 
-                    className="g-recaptcha" 
+                    className="g-recaptcha"
                     data-sitekey="6Ld4TXcqAAAAAGJ7msvDzjRzM-FGLA724cRP2n-H"
                     data-callback={(token) => setRecaptchaToken(token)}
                     data-theme="dark"
                   />
                 </div>
-                
+
                 <button
                   type="submit"
-                  className="w-full bg-[#FF7D2B] text-white py-2 px-4 rounded hover:bg-[#FF7D2B]/80 transition duration-200"
+                  className="w-full bg-[#FF7D2B] text-white py-2 px-4 rounded hover:bg-[#FF7D2B]/80 transition-opacity"
                 >
                   Post Message
                 </button>
