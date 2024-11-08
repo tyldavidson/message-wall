@@ -27,6 +27,19 @@ const MessageWall = () => {
     }
   }, []);
 
+  useEffect(() => {
+    // Ensure reCAPTCHA is initialized when the modal is shown
+    if (showModal && window.grecaptcha) {
+      window.grecaptcha.ready(() => {
+        window.grecaptcha.render('recaptcha', {
+          sitekey: '6Ld4TXcqAAAAAGJ7msvDzjRzM-FGLA724cRP2n-H',
+          callback: (token) => setRecaptchaToken(token),
+          theme: 'dark'
+        });
+      });
+    }
+  }, [showModal]);
+
   const fetchMessages = async () => {
     try {
       const response = await fetch('/api/messages');
@@ -352,14 +365,17 @@ const MessageWall = () => {
                 </div>
 
                 {/* reCAPTCHA */}
-                <div className="flex justify-center my-4">
-                  <div 
-                    className="g-recaptcha"
-                    data-sitekey="6Ld4TXcqAAAAAGJ7msvDzjRzM-FGLA724cRP2n-H"
-                    data-callback={(token) => setRecaptchaToken(token)}
-                    data-theme="dark"
-                  />
-                </div>
+{/* reCAPTCHA */}
+<div className="flex justify-center my-4">
+  <div 
+    id="recaptcha"
+    className="g-recaptcha"
+    data-sitekey="6Ld4TXcqAAAAAGJ7msvDzjRzM-FGLA724cRP2n-H"
+    data-callback="captchaCallback"
+    data-theme="dark"
+    data-type="image"
+  />
+</div>
 
                 <button
                   type="submit"

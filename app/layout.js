@@ -14,9 +14,9 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-<head>
-  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-</head>
+      <head>
+        <script src="https://www.google.com/recaptcha/api.js?render=explicit" async defer></script>
+      </head>
       <body className={playfair.className}>{children}</body>
     </html>
   )
