@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { Heart, Image as ImageIcon, X, Plus, Trash2, Lock, LogOut } from 'lucide-react';
-import Script from 'next/script';
 
 const MessageWall = () => {
   const [messages, setMessages] = useState([]);
@@ -153,20 +152,15 @@ const MessageWall = () => {
   };
 
   return (
-    <div>
-      <Script 
-        src="https://www.google.com/recaptcha/api.js"
-        strategy="beforeInteractive"
-      />
-      
-      <div className="min-h-screen bg-[#4A4745] text-white flex flex-col">
+    <div className="min-h-screen bg-[#4A4745] text-white">
+      <div className="flex flex-col min-h-screen">
         <div className="flex-1 p-5 sm:p-10 lg:p-20 max-w-[1600px] mx-auto w-full">
           {/* Header */}
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-3xl sm:text-4xl font-bold">Digital Ofrenda</h1>
             <button
               onClick={() => setShowModal(true)}
-              className="flex items-center gap-2 bg-[#FF7D2B] text-white px-4 py-2 rounded-lg hover:bg-[#FF7D2B]/80 transition-opacity"
+              className="flex items-center gap-2 bg-[#FF7D2B] text-white px-4 py-2 rounded-lg hover:bg-[#FF7D2B]/80 transition-all duration-200"
             >
               <Plus size={20} />
               Add a message
@@ -178,7 +172,7 @@ const MessageWall = () => {
             <div className="fixed top-4 right-4 z-40">
               <button
                 onClick={handleAdminLogout}
-                className="text-sm text-[#FF7D2B] hover:text-[#FF7D2B]/80 bg-[#4A4745]/80 px-3 py-1 rounded transition-opacity"
+                className="text-sm text-[#FF7D2B] hover:text-[#FF7D2B]/80 bg-[#4A4745]/80 px-3 py-1 rounded transition-all duration-200"
               >
                 Logout Admin
               </button>
@@ -190,12 +184,12 @@ const MessageWall = () => {
             {messages.map((msg) => (
               <div 
                 key={msg.id} 
-                className="break-inside-avoid mb-6 bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden hover:bg-white/15 transition-opacity shadow-lg relative"
+                className="break-inside-avoid mb-6 bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden hover:bg-white/15 transition-all duration-200 shadow-lg relative"
               >
                 {isAdmin && (
                   <button
                     onClick={() => handleDeleteMessage(msg.id)}
-                    className="absolute top-2 right-2 text-red-500 hover:text-red-700 transition-opacity"
+                    className="absolute top-2 right-2 text-red-500 hover:text-red-700 transition-all duration-200"
                     title="Delete message"
                   >
                     <Trash2 size={20} />
@@ -219,7 +213,7 @@ const MessageWall = () => {
                     </div>
                     <button
                       onClick={() => handleLike(msg.id)}
-                      className="flex items-center gap-1 text-white/50 hover:text-[#FF7D2B] transition-opacity"
+                      className="flex items-center gap-1 text-white/50 hover:text-[#FF7D2B] transition-all duration-200"
                     >
                       <Heart
                         size={16}
@@ -240,7 +234,7 @@ const MessageWall = () => {
             © 2024 Digital Ofrenda LLC - {' '}
             <button
               onClick={() => setShowAdminModal(true)}
-              className="hover:text-[#FF7D2B] transition-opacity inline-block"
+              className="hover:text-[#FF7D2B] transition-all duration-200 inline-block"
             >
               admin login
             </button>
@@ -256,7 +250,7 @@ const MessageWall = () => {
             <div className="bg-[#4A4745] shadow-xl rounded-lg w-full max-w-md relative text-white">
               <button
                 onClick={() => setShowAdminModal(false)}
-                className="absolute right-4 top-4 text-white/50 hover:text-white/70 transition-opacity"
+                className="absolute right-4 top-4 text-white/50 hover:text-white/70 transition-all duration-200"
               >
                 <X size={24} />
               </button>
@@ -281,7 +275,7 @@ const MessageWall = () => {
 
                 <button
                   type="submit"
-                  className="w-full bg-[#FF7D2B] text-white py-2 px-4 rounded hover:bg-[#FF7D2B]/80 transition-opacity"
+                  className="w-full bg-[#FF7D2B] text-white py-2 px-4 rounded hover:bg-[#FF7D2B]/80 transition-all duration-200"
                 >
                   Login
                 </button>
@@ -296,7 +290,7 @@ const MessageWall = () => {
             <div className="bg-[#4A4745] shadow-xl rounded-lg w-full max-w-md relative text-white">
               <button
                 onClick={() => setShowModal(false)}
-                className="absolute right-4 top-4 text-white/50 hover:text-white/70 transition-opacity"
+                className="absolute right-4 top-4 text-white/50 hover:text-white/70 transition-all duration-200"
               >
                 <X size={24} />
               </button>
@@ -348,7 +342,7 @@ const MessageWall = () => {
                         <button
                           type="button"
                           onClick={() => setNewMessage(prev => ({...prev, image: null, imagePreview: null}))}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center transition-all duration-200"
                         >
                           ×
                         </button>
@@ -357,6 +351,7 @@ const MessageWall = () => {
                   </div>
                 </div>
 
+                {/* reCAPTCHA */}
                 <div className="flex justify-center my-4">
                   <div 
                     className="g-recaptcha"
@@ -368,7 +363,7 @@ const MessageWall = () => {
 
                 <button
                   type="submit"
-                  className="w-full bg-[#FF7D2B] text-white py-2 px-4 rounded hover:bg-[#FF7D2B]/80 transition-opacity"
+                  className="w-full bg-[#FF7D2B] text-white py-2 px-4 rounded hover:bg-[#FF7D2B]/80 transition-all duration-200"
                 >
                   Post Message
                 </button>
@@ -377,12 +372,6 @@ const MessageWall = () => {
           </div>
         )}
       </div>
-
-      <style jsx global>{`
-        .grecaptcha-badge {
-          visibility: hidden;
-        }
-      `}</style>
     </div>
   );
 };
