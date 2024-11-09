@@ -218,9 +218,9 @@ const MessageWall = () => {
           <div className="columns-1 sm:columns-2 lg:columns-3 gap-6">
             {messages.map((msg) => (
               <div 
-                key={msg.id} 
-                className="break-inside-avoid mb-6 bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden hover:bg-white/15 transition-all duration-200 shadow-lg relative"
-              >
+              key={msg.id} 
+              className="break-inside-avoid mb-6 bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden hover:bg-white/15 hover:-translate-y-1 transition-all duration-200 shadow-lg relative"
+            >
                 {isAdmin && (
                   <button
                     onClick={() => handleDeleteMessage(msg.id)}
