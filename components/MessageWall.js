@@ -116,7 +116,7 @@ const MessageWall = () => {
 
  const handleLike = async (messageId) => {
    if (likedPosts.has(messageId)) {
-     return; // Already liked
+     return;
    }
 
    try {
@@ -231,9 +231,19 @@ const MessageWall = () => {
                  </button>
                )}
                {msg.iframe_content ? (
-                 <div className="relative w-full"
-                   dangerouslySetInnerHTML={{ __html: msg.iframe_content }}
-                 />
+                 <div className="relative w-full pt-[56.25%]">
+                   <div className="absolute inset-0 w-full h-full">
+                     <div 
+                       className="w-full h-full"
+                       dangerouslySetInnerHTML={{ 
+                         __html: msg.iframe_content.replace(
+                           /width="(\d+)"\s*height="(\d+)"/,
+                           'width="100%" height="100%"'
+                         )
+                       }}
+                     />
+                   </div>
+                 </div>
                ) : msg.image_url && (
                  <div className="relative w-full">
                    <img
@@ -374,16 +384,16 @@ const MessageWall = () => {
                          iframeContent: ''
                        }));
                      }}
-                     className="text-sm text-[#FF7D2B] hover:text-[#FF7D2B]/80"
-                   >
-                     Switch to {isIframeMode ? 'Image' : 'iFrame'}
-                   </button>
-                 </div>
+                     className="text-sm text-[#className="text-sm text-[#FF7D2B] hover:text-[#FF7D2B]/80"
+                    >
+                      Switch to {isIframeMode ? 'Image' : 'iFrame'}
+                    </button>
+                  </div>
 
-                 {isIframeMode ? (
-                   <div>
-                     <label className="block text-sm font-medium mb-1">iFrame Code</label>
-                     <textarea
+                  {isIframeMode ? (
+                    <div>
+                      <label className="block text-sm font-medium mb-1">iFrame Code</label>
+                      <textarea
                         value={newMessage.iframeContent}
                         onChange={(e) => setNewMessage(prev => ({...prev, iframeContent: e.target.value}))}
                         placeholder="Paste your iframe code here"
@@ -414,7 +424,7 @@ const MessageWall = () => {
                             <button
                               type="button"
                               onClick={() => setNewMessage(prev => ({...prev, image: null, imagePreview: null}))}
-                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
+                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center transition-all duration-200"
                             >
                               ×
                             </button>
