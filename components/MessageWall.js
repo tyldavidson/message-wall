@@ -14,11 +14,13 @@ const MessageWall = () => {
  const [adminError, setAdminError] = useState('');
  const [recaptchaToken, setRecaptchaToken] = useState('');
  const [likedPosts, setLikedPosts] = useState(new Set());
+ const [isIframeMode, setIsIframeMode] = useState(false);
  const [newMessage, setNewMessage] = useState({
    name: '',
    message: '',
    image: null,
    imagePreview: null,
+   iframeContent: '',
  });
 
  useEffect(() => {
@@ -27,14 +29,11 @@ const MessageWall = () => {
    if (storedAdminStatus === 'true') {
      setIsAdmin(true);
    }
-
-   // Load liked posts from localStorage
    const liked = JSON.parse(localStorage.getItem('likedPosts') || '[]');
    setLikedPosts(new Set(liked));
  }, []);
 
  useEffect(() => {
-   // Ensure reCAPTCHA is initialized when the modal is shown
    if (showModal && window.grecaptcha) {
      window.grecaptcha.ready(() => {
        window.grecaptcha.render('recaptcha', {
@@ -75,7 +74,8 @@ const MessageWall = () => {
          body: JSON.stringify({
            name: newMessage.name,
            message: newMessage.message,
-           imageUrl: newMessage.imagePreview,
+           imageUrl: isIframeMode ? null : newMessage.imagePreview,
+           iframeContent: isIframeMode ? newMessage.iframeContent : null,
            recaptchaToken: recaptchaToken,
          }),
        });
@@ -87,6 +87,7 @@ const MessageWall = () => {
            message: '',
            image: null,
            imagePreview: null,
+           iframeContent: '',
          });
          setShowModal(false);
          window.grecaptcha?.reset();
@@ -184,22 +185,22 @@ const MessageWall = () => {
    <div className="min-h-screen bg-[#4A4745] text-white">
      <div className="flex flex-col min-h-screen">
        <div className="flex-1 p-5 sm:p-10 lg:p-20 max-w-[1600px] mx-auto w-full">
-{/* Header */}
-<div className="flex justify-between min-h-[150px] mb-8">
-  <div className="flex flex-col">
-    <h1 className="text-3xl sm:text-4xl font-bold">Sample Card Headline</h1>
-    <p className="text-white/70 mt-3 sm:mt-6 text-lg sm:text-xl">
-      Sample card description or directions
-    </p>
-  </div>
-  <button
-    onClick={() => setShowModal(true)}
-    className="flex items-center gap-2 bg-[#FF7D2B] text-white px-4 py-2 h-fit rounded-lg hover:bg-[#FF7D2B]/80 transition-all duration-200"
-  >
-    <Plus size={20} />
-    Add a message
-  </button>
-</div>
+         {/* Header */}
+         <div className="flex justify-between mb-8">
+           <div className="flex flex-col">
+             <h1 className="text-3xl sm:text-4xl font-bold">Sample Card Headline</h1>
+             <p className="text-white/70 mt-3 sm:mt-6 text-lg sm:text-xl">
+               Sample card description or directions
+             </p>
+           </div>
+           <button
+             onClick={() => setShowModal(true)}
+             className="flex items-center gap-2 bg-[#FF7D2B] text-white px-4 py-2 h-fit rounded-lg hover:bg-[#FF7D2B]/80 transition-all duration-200"
+           >
+             <Plus size={20} />
+             Add a message
+           </button>
+         </div>
 
          {/* Admin Logout Button */}
          {isAdmin && (
@@ -229,7 +230,11 @@ const MessageWall = () => {
                    <Trash2 size={20} />
                  </button>
                )}
-               {msg.image_url && (
+               {msg.iframe_content ? (
+                 <div className="relative w-full"
+                   dangerouslySetInnerHTML={{ __html: msg.iframe_content }}
+                 />
+               ) : msg.image_url && (
                  <div className="relative w-full">
                    <img
                      src={msg.image_url}
@@ -265,20 +270,20 @@ const MessageWall = () => {
        </div>
 
        {/* Footer */}
-<footer className="pt-5 px-5 sm:pt-10 sm:px-10 lg:pt-20 lg:px-20 pb-4 text-xs text-[#FF7D2B]/60">
-  <p>
-    © 2024 Digital Ofrenda LLC - {' '}
-    <button
-      onClick={() => setShowAdminModal(true)}
-      className="hover:text-[#FF7D2B] transition-all duration-200 inline-block"
-    >
-      admin login
-    </button>
-    {' '}- This site is protected by reCAPTCHA and the Google{' '}
-    <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-[#FF7D2B]">Privacy Policy</a> and{' '}
-    <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" className="hover:text-[#FF7D2B]">Terms of Service</a> apply.
-  </p>
-</footer>
+       <footer className="pt-5 px-5 sm:pt-10 sm:px-10 lg:pt-20 lg:px-20 pb-4 text-xs text-[#FF7D2B]/60">
+         <p>
+           © 2024 Digital Ofrenda LLC - {' '}
+           <button
+             onClick={() => setShowAdminModal(true)}
+             className="hover:text-[#FF7D2B] transition-all duration-200 inline-block"
+           >
+             admin login
+           </button>
+           {' '}- This site is protected by reCAPTCHA and the Google{' '}
+           <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-[#FF7D2B]">Privacy Policy</a> and{' '}
+           <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" className="hover:text-[#FF7D2B]">Terms of Service</a> apply.
+         </p>
+       </footer>
 
        {/* Admin Modal */}
        {showAdminModal && (
@@ -356,38 +361,71 @@ const MessageWall = () => {
                </div>
 
                <div>
-                 <label className="block text-sm font-medium mb-1">Add Image (optional)</label>
-                 <div className="mt-1 flex items-center gap-4">
-                   <label className="flex items-center gap-2 px-4 py-2 bg-white/5 text-white rounded cursor-pointer hover:bg-white/10">
-                     <ImageIcon size={20} />
-                     <span>Choose Image</span>
-                     <input
-                       type="file"
-                       onChange={handleImageChange}
-                       accept="image/*"
-                       className="hidden"
-                     />
-                   </label>
-                   {newMessage.imagePreview && (
-                     <div className="relative w-20 h-20">
-                       <img
-                         src={newMessage.imagePreview}
-                         alt="Preview"
-                         className="w-full h-full object-cover rounded"
-                       />
-                       <button
-                         type="button"
-                         onClick={() => setNewMessage(prev => ({...prev, image: null, imagePreview: null}))}
-                         className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center transition-all duration-200"
-                       >
-                         ×
-                       </button>
-                     </div>
-                   )}
+                 <div className="flex justify-between items-center mb-4">
+                   <label className="block text-sm font-medium">Content Type</label>
+                   <button
+                     type="button"
+                     onClick={() => {
+                       setIsIframeMode(!isIframeMode);
+                       setNewMessage(prev => ({
+                         ...prev,
+                         image: null,
+                         imagePreview: null,
+                         iframeContent: ''
+                       }));
+                     }}
+                     className="text-sm text-[#FF7D2B] hover:text-[#FF7D2B]/80"
+                   >
+                     Switch to {isIframeMode ? 'Image' : 'iFrame'}
+                   </button>
                  </div>
-               </div>
 
-               <div className="flex justify-center my-4">
+                 {isIframeMode ? (
+                   <div>
+                     <label className="block text-sm font-medium mb-1">iFrame Code</label>
+                     <textarea
+                        value={newMessage.iframeContent}
+                        onChange={(e) => setNewMessage(prev => ({...prev, iframeContent: e.target.value}))}
+                        placeholder="Paste your iframe code here"
+                        className="w-full p-2 bg-white/5 border border-white/10 rounded min-h-[100px] focus:ring-2 focus:ring-[#FF7D2B] focus:border-[#FF7D2B] text-white font-mono text-sm"
+                      />
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Add Image (optional)</label>
+                      <div className="mt-1 flex items-center gap-4">
+                        <label className="flex items-center gap-2 px-4 py-2 bg-white/5 text-white rounded cursor-pointer hover:bg-white/10">
+                          <ImageIcon size={20} />
+                          <span>Choose Image</span>
+                          <input
+                            type="file"
+                            onChange={handleImageChange}
+                            accept="image/*"
+                            className="hidden"
+                          />
+                        </label>
+                        {newMessage.imagePreview && (
+                          <div className="relative w-20 h-20">
+                            <img
+                              src={newMessage.imagePreview}
+                              alt="Preview"
+                              className="w-full h-full object-cover rounded"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setNewMessage(prev => ({...prev, image: null, imagePreview: null}))}
+                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex justify-center my-4">
                   <div 
                     id="recaptcha"
                     className="g-recaptcha"
