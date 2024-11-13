@@ -218,79 +218,81 @@ const MessageWall = () => {
 
 {/* Messages Display */}
 <div className="columns-1 sm:columns-2 lg:columns-3 gap-6">
-            {isLoading ? (
-              <div className="col-span-full text-center py-8 text-white/50">
-                Loading messages...
-              </div>
-            ) : messages.length === 0 ? (
-              <div className="col-span-full text-center py-8 text-white/50">
-                No messages yet. Be the first to post!
-              </div>
-            ) : (
-              messages.map((msg) => (
-                <div 
-                  key={msg.id} 
-                  className="break-inside-avoid mb-6 bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden hover:bg-white/15 hover:-translate-y-1 transition-all duration-200 shadow-lg relative opacity-0 animate-fade-in"
-                >
-                  {isAdmin && (
-                    <button
-                      onClick={() => handleDeleteMessage(msg.id)}
-                      className="absolute top-2 right-2 text-red-500 hover:text-red-700 transition-all duration-200"
-                      title="Delete message"
-                    >
-                      <Trash2 size={20} />
-                    </button>
-                  )}
-                  {msg.iframe_content ? (
-                    <div className="relative w-full pt-[56.25%]">
-                      <div className="absolute inset-0 w-full h-full">
-                        <div 
-                          className="w-full h-full"
-                          dangerouslySetInnerHTML={{ 
-                            __html: msg.iframe_content.replace(
-                              /width="(\d+)"\s*height="(\d+)"/g,
-                              'width="100%" height="100%"'
-                            )
-                          }}
-                        />
-                      </div>
-                    </div>
-                  ) : msg.image_url && (
-                    <div className="relative w-full">
-                      <img
-                        src={msg.image_url}
-                        alt="Message attachment"
-                        className="w-full object-cover"
-                      />
-                    </div>
-                  )}
-                  <div className="p-6">
-                    <p className="text-white/90 mb-4 leading-relaxed">{msg.message}</p>
-                    <div className="flex justify-between items-center text-sm">
-                      <p className="font-medium text-[#FF7D2B]">- {msg.name}</p>
-                      <button
-                        onClick={() => handleLike(msg.id)}
-                        className={`flex items-center gap-1 ${
-                          likedPosts.has(msg.id) 
-                            ? 'text-[#FF7D2B]' 
-                            : 'text-white/50 hover:text-[#FF7D2B]'
-                        } transition-all duration-200`}
-                        disabled={likedPosts.has(msg.id)}
-                      >
-                        <Heart
-                          size={16}
-                          fill={likedPosts.has(msg.id) ? "currentColor" : "none"}
-                        />
-                        <span>{msg.likes || 0}</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
+           {isLoading ? (
+             <div className="col-span-full text-center py-8 text-white/50">
+               Loading messages...
+             </div>
+           ) : messages.length === 0 ? (
+             <div className="col-span-full text-center py-8 text-white/50">
+               No messages yet. Be the first to post!
+             </div>
+           ) : (
+             [...messages]
+               .sort((a, b) => Number(b.id) - Number(a.id))
+               .map((msg) => (
+               <div 
+                 key={msg.id} 
+                 className="break-inside-avoid mb-6 bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden hover:bg-white/15 hover:-translate-y-1 transition-all duration-200 shadow-lg relative opacity-0 animate-fade-in"
+               >
+                 {isAdmin && (
+                   <button
+                     onClick={() => handleDeleteMessage(msg.id)}
+                     className="absolute top-2 right-2 text-red-500 hover:text-red-700 transition-all duration-200"
+                     title="Delete message"
+                   >
+                     <Trash2 size={20} />
+                   </button>
+                 )}
+                 {msg.iframe_content ? (
+                   <div className="relative w-full pt-[56.25%]">
+                     <div className="absolute inset-0 w-full h-full">
+                       <div 
+                         className="w-full h-full"
+                         dangerouslySetInnerHTML={{ 
+                           __html: msg.iframe_content.replace(
+                             /width="(\d+)"\s*height="(\d+)"/g,
+                             'width="100%" height="100%"'
+                           )
+                         }}
+                       />
+                     </div>
+                   </div>
+                 ) : msg.image_url && (
+                   <div className="relative w-full">
+                     <img
+                       src={msg.image_url}
+                       alt="Message attachment"
+                       className="w-full object-cover"
+                     />
+                   </div>
+                 )}
+                 <div className="p-6">
+                   <p className="text-white/90 mb-4 leading-relaxed">{msg.message}</p>
+                   <div className="flex justify-between items-center text-sm">
+                     <p className="font-medium text-[#FF7D2B]">- {msg.name}</p>
+                     <button
+                       onClick={() => handleLike(msg.id)}
+                       className={`flex items-center gap-1 ${
+                         likedPosts.has(msg.id) 
+                           ? 'text-[#FF7D2B]' 
+                           : 'text-white/50 hover:text-[#FF7D2B]'
+                       } transition-all duration-200`}
+                       disabled={likedPosts.has(msg.id)}
+                     >
+                       <Heart
+                         size={16}
+                         fill={likedPosts.has(msg.id) ? "currentColor" : "none"}
+                       />
+                       <span>{msg.likes || 0}</span>
+                     </button>
+                   </div>
+                 </div>
+               </div>
+             ))
+           )}
+         </div>
           </div>
-          </div>
-          
+
        {/* Footer */}
        <footer className="pt-5 px-5 sm:pt-10 sm:px-10 lg:pt-20 lg:px-20 pb-4 text-xs text-[#FF7D2B]/60">
          <p>
