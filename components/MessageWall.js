@@ -215,7 +215,7 @@ const MessageWall = () => {
              </button>
            </div>
          )}
-
+         
 {/* Messages Display */}
 <div className="columns-1 sm:columns-2 lg:columns-3 gap-6">
            {isLoading ? (
@@ -228,7 +228,7 @@ const MessageWall = () => {
              </div>
            ) : (
              [...messages]
-               .sort((a, b) => Number(b.id) - Number(a.id))
+               .sort(() => Math.random() - 0.5)
                .map((msg) => (
                <div 
                  key={msg.id} 
