@@ -216,8 +216,8 @@ const MessageWall = () => {
            </div>
          )}
 
-         {/* Messages Display */}
-         <div className="columns-1 sm:columns-2 lg:columns-3 gap-6">
+{/* Messages Display */}
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
            {isLoading ? (
              <div className="col-span-full text-center py-8 text-white/50">
                Loading messages...
@@ -230,7 +230,7 @@ const MessageWall = () => {
              messages.map((msg) => (
                <div 
                  key={msg.id} 
-                 className="break-inside-avoid mb-6 bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden hover:bg-white/15 hover:-translate-y-1 transition-all duration-200 shadow-lg relative opacity-0 animate-fade-in"
+                 className="bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden hover:bg-white/15 hover:-translate-y-1 transition-all duration-200 shadow-lg relative opacity-0 animate-fade-in"
                >
                  {isAdmin && (
                    <button
@@ -289,7 +289,7 @@ const MessageWall = () => {
              ))
            )}
          </div>
-       </div>
+         </div>
 
        {/* Footer */}
        <footer className="pt-5 px-5 sm:pt-10 sm:px-10 lg:pt-20 lg:px-20 pb-4 text-xs text-[#FF7D2B]/60">
